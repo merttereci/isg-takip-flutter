@@ -1,0 +1,29 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/sirket_provider.dart';
+import 'screens/home_page.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => SirketProvider()..verileriYukle(),
+      child: MaterialApp(
+        title: 'Şirket Takip',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const HomePage(),
+      ),
+    );
+  }
+}
