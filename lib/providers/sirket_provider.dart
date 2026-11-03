@@ -3,26 +3,50 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sirket.dart';
 import '../models/belge.dart';
-import '../models/calisan.dart'; // ← BUNU EKLE
+import '../models/calisan.dart';
+import '../models/json_okuyucu.dart';
 
 class SirketProvider extends ChangeNotifier {
   List<Sirket> _sirketler = [];
 
   List<Sirket> get sirketler => _sirketler;
 
-  // ID oluşturucu
-  String _generateId() => DateTime.now().millisecondsSinceEpoch.toString();
+  // Kayıtlı veri anahtarı ve okunamayan verinin yedeklendiği anahtar
+  static const _veriAnahtari = 'sirketler';
+  static const _bozukVeriYedekAnahtari = 'sirketler_okunamayan_yedek';
+
+  // ID oluşturucu. Aynı anda art arda yapılan eklemelerde bile benzersiz,
+  // sayısal bir kimlik üretir.
+  int _sonId = 0;
+  String _generateId() {
+    final simdi = DateTime.now().microsecondsSinceEpoch;
+    _sonId = simdi > _sonId ? simdi : _sonId + 1;
+    return _sonId.toString();
+  }
 
   // Uygulama başladığında verileri yükle
   Future<void> verileriYukle() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? sirketlerJson = prefs.getString('sirketler');
+    final String? sirketlerJson = prefs.getString(_veriAnahtari);
+    if (sirketlerJson == null) return;
 
-    if (sirketlerJson != null) {
-      final List<dynamic> decoded = jsonDecode(sirketlerJson);
-      _sirketler = decoded.map((json) => Sirket.fromJson(json)).toList();
-      notifyListeners();
+    Object? decoded;
+    try {
+      decoded = jsonDecode(sirketlerJson);
+    } on FormatException {
+      decoded = null;
     }
+
+    if (decoded is! List) {
+      // Veri tamamen okunamıyor: sonraki kayıtta üzerine yazılıp kaybolmaması
+      // için ham hâlini ayrı bir anahtara yedekle.
+      await prefs.setString(_bozukVeriYedekAnahtari, sirketlerJson);
+      _sirketler = [];
+    } else {
+      // Tek tek okunamayan şirket kayıtları atlanır.
+      _sirketler = jsonListe(decoded, Sirket.tryFromJson);
+    }
+    notifyListeners();
   }
 
   // Şirketi yıldızla/yıldızdan çıkar
@@ -37,7 +61,7 @@ class SirketProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final String encoded =
         jsonEncode(_sirketler.map((s) => s.toJson()).toList());
-    await prefs.setString('sirketler', encoded);
+    await prefs.setString(_veriAnahtari, encoded);
   }
 
   // Yeni şirket ekle
@@ -70,19 +94,13 @@ class SirketProvider extends ChangeNotifier {
   Future<void> sirketGuncelle(Sirket guncelSirket) async {
     final index = _sirketler.indexWhere((s) => s.id == guncelSirket.id);
     if (index != -1) {
-      print(
-          'PROVIDER - Önceki: ${_sirketler[index].calisanlar.length} çalışan');
-      print('PROVIDER - Yeni: ${guncelSirket.calisanlar.length} çalışan');
-
       _sirketler[index] = guncelSirket;
       await _verileriKaydet();
       notifyListeners();
     }
   }
 
-  // SirketProvider class içine ekle:
-
-// Şirket notunu güncelle
+  // Şirket notunu güncelle
   Future<void> sirketNotuGuncelle(String sirketId, String not) async {
     final sirket = _sirketler.firstWhere((s) => s.id == sirketId);
     final guncelSirket = sirket.copyWith(not: not);
@@ -117,29 +135,6 @@ class SirketProvider extends ChangeNotifier {
     if (belgeIndex != -1) {
       final guncelBelge = sirket.belgeler[belgeIndex].copyWith(
         gecerlilikTarihi: tarih,
-      );
-      final yeniBelgeler = List<Belge>.from(sirket.belgeler);
-      yeniBelgeler[belgeIndex] = guncelBelge;
-
-      final guncelSirket = sirket.copyWith(belgeler: yeniBelgeler);
-      await sirketGuncelle(guncelSirket);
-    }
-  }
-
-  // İşe giriş muayenesi sayılarını güncelle
-  Future<void> muayeneSayilariGuncelle(
-    String sirketId,
-    String belgeId,
-    int yapilan,
-    int yapilmayan,
-  ) async {
-    final sirket = _sirketler.firstWhere((s) => s.id == sirketId);
-    final belgeIndex = sirket.belgeler.indexWhere((b) => b.id == belgeId);
-
-    if (belgeIndex != -1) {
-      final guncelBelge = sirket.belgeler[belgeIndex].copyWith(
-        yapilan: yapilan,
-        yapilmayan: yapilmayan,
       );
       final yeniBelgeler = List<Belge>.from(sirket.belgeler);
       yeniBelgeler[belgeIndex] = guncelBelge;
@@ -190,7 +185,7 @@ class SirketProvider extends ChangeNotifier {
     await sirketGuncelle(guncelSirket);
   }
 
-// Çalışan sil
+  // Çalışan sil
   Future<void> calisanSil(String sirketId, String calisanId) async {
     final sirket = _sirketler.firstWhere((s) => s.id == sirketId);
     final yeniCalisanlar =
@@ -215,7 +210,7 @@ class SirketProvider extends ChangeNotifier {
     await sirketGuncelle(guncelSirket);
   }
 
-// Belgeye çalışan kaydı ekle
+  // Belgeye çalışan kaydı ekle
   Future<void> belgeyeCalisanEkle(
     String sirketId,
     String belgeId,
@@ -246,7 +241,7 @@ class SirketProvider extends ChangeNotifier {
     }
   }
 
-// Belgeden çalışan kaydını sil
+  // Belgeden çalışan kaydını sil
   Future<void> belgedenCalisanSil(
     String sirketId,
     String belgeId,

@@ -49,18 +49,12 @@ class _YeniSirketDialogState extends State<YeniSirketDialog> {
           calisanSayisi: int.parse(_calisanSayisiController.text),
         );
       } else {
-        // DEBUG - BURAYI EKLE
-        print('ÖNCE - Çalışan sayısı: ${widget.sirket!.calisanlar.length}');
-
         // Mevcut şirketi güncelle
         final guncelSirket = widget.sirket!.copyWith(
           ad: _adController.text.trim(),
           tehlikeSinifi: _secilenTehlikeSinifi,
           calisanSayisi: int.parse(_calisanSayisiController.text),
         );
-
-        // DEBUG - BURAYI EKLE
-        print('SONRA - Çalışan sayısı: ${guncelSirket.calisanlar.length}');
 
         provider.sirketGuncelle(guncelSirket);
       }

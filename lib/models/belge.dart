@@ -1,13 +1,22 @@
 import 'calisan.dart';
+import 'json_okuyucu.dart';
+
+/// Arayüzde özel davranışı olan standart belgelerin kimlikleri.
+/// Bu değerler kayıtlı verilerde kullanıldığı için değiştirilmemelidir.
+abstract final class StandartBelgeId {
+  /// Geçerlilik tarihi tutulan belge.
+  static const riskAnalizi = '1';
+
+  /// Çalışan bazında tarih kaydı tutulan belgeler.
+  static const egitimKatilimFormu = '5';
+  static const iseGirisMuayenesi = '6';
+}
 
 class Belge {
   final String id;
   final String ad;
   final BelgeTipi tip;
   bool varMi;
-
-  int? yapilan;
-  int? yapilmayan;
 
   DateTime? gecerlilikTarihi;
   List<CalisanBelgeKayit>? calisanKayitlar;
@@ -17,11 +26,17 @@ class Belge {
     required this.ad,
     required this.tip,
     this.varMi = false,
-    this.yapilan,
-    this.yapilmayan,
     this.gecerlilikTarihi,
     this.calisanKayitlar,
   });
+
+  /// Geçerlilik tarihi seçilebilen belge mi?
+  bool get gecerlilikTarihliMi => id == StandartBelgeId.riskAnalizi;
+
+  /// Çalışan bazında tarih kaydı tutulan belge mi?
+  bool get calisanBazliMi =>
+      id == StandartBelgeId.egitimKatilimFormu ||
+      id == StandartBelgeId.iseGirisMuayenesi;
 
   Map<String, dynamic> toJson() {
     return {
@@ -29,49 +44,39 @@ class Belge {
       'ad': ad,
       'tip': tip.toString(),
       'varMi': varMi,
-      'yapilan': yapilan,
-      'yapilmayan': yapilmayan,
       'gecerlilikTarihi': gecerlilikTarihi?.toIso8601String(),
       'calisanKayitlar': calisanKayitlar?.map((k) => k.toJson()).toList(),
     };
   }
 
-  factory Belge.fromJson(Map<String, dynamic> json) {
+  /// JSON'dan oluşturma. Kimliği olmayan ya da biçimi bozuk kayıtlar için
+  /// null döner; diğer eksik alanlar varsayılan değerle doldurulur.
+  static Belge? tryFromJson(Object? json) {
+    if (json is! Map) return null;
+    final id = jsonString(json['id']);
+    if (id == null || id.isEmpty) return null;
     return Belge(
-      id: json['id'],
-      ad: json['ad'],
-      tip: BelgeTipi.values.firstWhere(
-        (e) => e.toString() == json['tip'],
-      ),
-      varMi: json['varMi'] ?? false,
-      yapilan: json['yapilan'],
-      yapilmayan: json['yapilmayan'],
-      gecerlilikTarihi: json['gecerlilikTarihi'] != null
-          ? DateTime.parse(json['gecerlilikTarihi'])
+      id: id,
+      ad: jsonString(json['ad']) ?? '',
+      tip: jsonEnum(json['tip'], BelgeTipi.values, BelgeTipi.standart),
+      varMi: jsonBool(json['varMi']),
+      gecerlilikTarihi: jsonTarih(json['gecerlilikTarihi']),
+      calisanKayitlar: json['calisanKayitlar'] is List
+          ? jsonListe(json['calisanKayitlar'], CalisanBelgeKayit.tryFromJson)
           : null,
-      calisanKayitlar: (json['calisanKayitlar'] as List?)
-          ?.map((k) => CalisanBelgeKayit.fromJson(k))
-          .toList(),
     );
   }
 
   Belge copyWith({
-    String? id,
-    String? ad,
-    BelgeTipi? tip,
     bool? varMi,
-    int? yapilan,
-    int? yapilmayan,
     DateTime? gecerlilikTarihi,
     List<CalisanBelgeKayit>? calisanKayitlar,
   }) {
     return Belge(
-      id: id ?? this.id,
-      ad: ad ?? this.ad,
-      tip: tip ?? this.tip,
+      id: id,
+      ad: ad,
+      tip: tip,
       varMi: varMi ?? this.varMi,
-      yapilan: yapilan ?? this.yapilan,
-      yapilmayan: yapilmayan ?? this.yapilmayan,
       gecerlilikTarihi: gecerlilikTarihi ?? this.gecerlilikTarihi,
       calisanKayitlar: calisanKayitlar ?? this.calisanKayitlar,
     );
@@ -80,7 +85,7 @@ class Belge {
   static List<Belge> standartBelgeler() {
     return [
       Belge(
-        id: '1',
+        id: StandartBelgeId.riskAnalizi,
         ad: 'Risk Analiz Değerlendirmesi',
         tip: BelgeTipi.standart,
       ),
@@ -100,16 +105,14 @@ class Belge {
         tip: BelgeTipi.standart,
       ),
       Belge(
-        id: '5',
+        id: StandartBelgeId.egitimKatilimFormu,
         ad: 'İş Güvenliği Eğitim Katılım Formu',
         tip: BelgeTipi.standart,
       ),
       Belge(
-        id: '6',
+        id: StandartBelgeId.iseGirisMuayenesi,
         ad: 'İşe Giriş Muayenesi',
         tip: BelgeTipi.standart,
-        yapilan: 0,
-        yapilmayan: 0,
       ),
       Belge(
         id: '7',

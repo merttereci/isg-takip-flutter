@@ -14,17 +14,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _sadeceyildizlilar = false;
-  bool _sirala = false; // ← Bunu ekle
+  bool _sirala = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Şirket Takip'),
+        title: const Text('İSG Takip'),
         actions: [
           IconButton(
-            // ← Sıralama butonu (yıldızın SOLUNA)
+            // Sıralama butonu
             icon: Icon(
               _sirala ? Icons.sort : Icons.sort_outlined,
               color: _sirala ? Colors.white : null,
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => YeniSirketDialog(),
+            builder: (context) => const YeniSirketDialog(),
           );
         },
         child: const Icon(Icons.add),

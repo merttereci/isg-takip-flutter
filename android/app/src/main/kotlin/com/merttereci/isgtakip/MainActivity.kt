@@ -1,4 +1,4 @@
-package com.example.sirket_takip
+package com.merttereci.isgtakip
 
 import io.flutter.embedding.android.FlutterActivity
 

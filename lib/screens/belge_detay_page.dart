@@ -4,6 +4,7 @@ import '../providers/sirket_provider.dart';
 import '../models/sirket.dart';
 import '../models/belge.dart';
 import '../models/calisan.dart';
+import '../utils/tarih.dart';
 
 class BelgeDetayPage extends StatelessWidget {
   final Sirket sirket;
@@ -14,10 +15,6 @@ class BelgeDetayPage extends StatelessWidget {
     required this.sirket,
     required this.belge,
   });
-
-  String _formatTarih(DateTime tarih) {
-    return '${tarih.day.toString().padLeft(2, '0')}.${tarih.month.toString().padLeft(2, '0')}.${tarih.year}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +36,11 @@ class BelgeDetayPage extends StatelessWidget {
           );
 
           final calisanKayitlari = guncelBelge.calisanKayitlar ?? [];
-          final toplamCalisan = guncelSirket.calisanSayisi;
           final eklenenCalisan = guncelSirket.calisanlar.length;
           final belgeli = calisanKayitlari.length;
-          final belgesiz = eklenenCalisan - belgeli;
-          final kayitsiz = toplamCalisan - eklenenCalisan;
+          final belgesiz =
+              eklenenCalisan > belgeli ? eklenenCalisan - belgeli : 0;
+          final kayitsiz = guncelSirket.eklenmeyenCalisanSayisi;
 
           return Column(
             children: [
@@ -117,7 +114,6 @@ class BelgeDetayPage extends StatelessWidget {
                           final calisan = guncelSirket.calisanlar[index];
 
                           // Bu çalışanın bu belgedeki kaydını bul
-                          // Bu çalışanın bu belgedeki kaydını bul
                           final kayit = calisanKayitlari
                               .where((k) => k.calisanId == calisan.id)
                               .firstOrNull;
@@ -134,7 +130,7 @@ class BelgeDetayPage extends StatelessWidget {
                               ),
                               title: Text(calisan.ad),
                               subtitle: belgeli
-                                  ? Text('Tarih: ${_formatTarih(kayit.tarih)}')
+                                  ? Text('Tarih: ${formatTarih(kayit.tarih)}')
                                   : const Text('Belge yok'),
                               trailing: belgeli
                                   ? IconButton(
@@ -170,12 +166,7 @@ class BelgeDetayPage extends StatelessWidget {
 
   void _tarihEkle(BuildContext context, SirketProvider provider, Sirket sirket,
       Calisan calisan) async {
-    final tarih = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
+    final tarih = await tarihSec(context);
 
     if (tarih != null) {
       await provider.belgeyeCalisanEkle(
@@ -209,14 +200,14 @@ class BelgeDetayPage extends StatelessWidget {
       ),
     );
 
+    // Dialog kapanırken sayfa kapanmış olabilir. (Dart 3.0 linter'ı
+    // context.mounted kontrolünü tanımadığı için uyarı burada susturuluyor.)
+    // ignore: use_build_context_synchronously
+    if (!context.mounted) return;
+
     if (secim == 'tarih') {
       // Tarih düzenle
-      final tarih = await showDatePicker(
-        context: context,
-        initialDate: mevcutTarih,
-        firstDate: DateTime(2020),
-        lastDate: DateTime(2030),
-      );
+      final tarih = await tarihSec(context, baslangic: mevcutTarih);
 
       if (tarih != null) {
         await provider.belgedenCalisanSil(sirket.id, belge.id, calisan.id);

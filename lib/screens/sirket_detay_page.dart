@@ -5,8 +5,9 @@ import '../models/sirket.dart';
 import '../models/belge.dart';
 import '../widgets/ozel_belge_dialog.dart';
 import '../widgets/yeni_sirket_dialog.dart';
-import 'belge_detay_page.dart'; // ← BUNU EKLE
-import 'calisan_yonetim_page.dart'; // ← BUNU EKLE
+import '../utils/tarih.dart';
+import 'belge_detay_page.dart';
+import 'calisan_yonetim_page.dart';
 
 class SirketDetayPage extends StatelessWidget {
   final Sirket sirket;
@@ -29,7 +30,6 @@ class SirketDetayPage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            // ← Çalışan yönetimi butonu (ÖNCE)
             icon: const Icon(Icons.people),
             tooltip: 'Çalışan Yönetimi',
             onPressed: () {
@@ -143,7 +143,6 @@ class SirketDetayPage extends StatelessWidget {
           );
         },
       ),
-      // FAB kaldırıldı - artık gerek yok
     );
   }
 }
@@ -158,32 +157,11 @@ class BelgeItem extends StatelessWidget {
     required this.belge,
   });
 
-  // Belge subtitle (geçerlilik tarihi gösterimi)
-  Widget? _belgeSubtitle(Belge belge) {
-    if (belge.id == '1' && belge.gecerlilikTarihi != null) {
-      return Text(
-        'Geçerlilik: ${_formatTarih(belge.gecerlilikTarihi!)}',
-        style: const TextStyle(fontSize: 12),
-      );
-    }
-    return null;
-  }
-
-// Tarih formatlama
-  String _formatTarih(DateTime tarih) {
-    return '${tarih.day.toString().padLeft(2, '0')}.${tarih.month.toString().padLeft(2, '0')}.${tarih.year}';
-  }
-
-// Tarih seçme dialogu
+  // Tarih seçme dialogu
   void _tarihSecDialog(BuildContext context, Belge belge) {
-    showDatePicker(
-      context: context,
-      initialDate: belge.gecerlilikTarihi ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    ).then((secilenTarih) {
+    final provider = context.read<SirketProvider>();
+    tarihSec(context, baslangic: belge.gecerlilikTarihi).then((secilenTarih) {
       if (secilenTarih != null) {
-        final provider = context.read<SirketProvider>();
         provider.belgeGecerlilikTarihiGuncelle(
           sirketId,
           belge.id,
@@ -197,14 +175,14 @@ class BelgeItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<SirketProvider>();
 
-    // Risk Analiz Değerlendirmesi özel gösterim (1. madde)
-    if (belge.id == '1') {
+    // Risk Analiz Değerlendirmesi: geçerlilik tarihi gösterimi
+    if (belge.gecerlilikTarihliMi) {
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         child: ListTile(
           title: Text(belge.ad),
           subtitle: belge.gecerlilikTarihi != null
-              ? Text('Geçerlilik: ${_formatTarih(belge.gecerlilikTarihi!)}')
+              ? Text('Geçerlilik: ${formatTarih(belge.gecerlilikTarihi!)}')
               : const Text('Geçerlilik tarihi seçilmemiş'),
           leading: const Icon(Icons.calendar_today),
           onTap: () => _tarihSecDialog(context, belge),
@@ -220,14 +198,13 @@ class BelgeItem extends StatelessWidget {
       );
     }
 
-// 5. ve 6. madde - Çalışan listesi
-    if (belge.id == '5' || belge.id == '6') {
+    // Eğitim katılım formu ve işe giriş muayenesi: çalışan listesi
+    if (belge.calisanBazliMi) {
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         child: ListTile(
           leading: const Icon(Icons.people),
           title: Text(belge.ad),
-          // subtitle: Text('$calisanSayisi çalışan eklenmiş'), ← BUNU SİL
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
             Navigator.push(
@@ -335,11 +312,11 @@ class _NotKartiState extends State<NotKarti> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(Icons.sticky_note_2, size: 20),
-                      const SizedBox(width: 8),
-                      const Text(
+                      Icon(Icons.sticky_note_2, size: 20),
+                      SizedBox(width: 8),
+                      Text(
                         'Notlar',
                         style: TextStyle(
                           fontSize: 16,

@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => SirketProvider()..verileriYukle(),
       child: MaterialApp(
-        title: 'Şirket Takip',
+        title: 'İSG Takip',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),

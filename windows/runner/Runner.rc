@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "sirket_takip" "\0"
+            VALUE "CompanyName", "com.merttereci" "\0"
+            VALUE "FileDescription", "isg_takip" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "sirket_takip" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "sirket_takip.exe" "\0"
-            VALUE "ProductName", "sirket_takip" "\0"
+            VALUE "InternalName", "isg_takip" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.merttereci. All rights reserved." "\0"
+            VALUE "OriginalFilename", "isg_takip.exe" "\0"
+            VALUE "ProductName", "isg_takip" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

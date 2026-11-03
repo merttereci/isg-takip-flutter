@@ -24,7 +24,7 @@ class CalisanYonetimPage extends StatelessWidget {
 
           final toplamCalisan = guncelSirket.calisanSayisi;
           final eklenenCalisan = guncelSirket.calisanlar.length;
-          final eklenmeyen = toplamCalisan - eklenenCalisan;
+          final eklenmeyen = guncelSirket.eklenmeyenCalisanSayisi;
 
           return Column(
             children: [

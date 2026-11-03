@@ -1,3 +1,5 @@
+import 'json_okuyucu.dart';
+
 class Calisan {
   final String id;
   final String ad;
@@ -15,11 +17,15 @@ class Calisan {
     };
   }
 
-  // JSON'dan oluşturma
-  factory Calisan.fromJson(Map<String, dynamic> json) {
+  /// JSON'dan oluşturma. Kimliği olmayan ya da biçimi bozuk kayıtlar için
+  /// null döner.
+  static Calisan? tryFromJson(Object? json) {
+    if (json is! Map) return null;
+    final id = jsonString(json['id']);
+    if (id == null || id.isEmpty) return null;
     return Calisan(
-      id: json['id'],
-      ad: json['ad'],
+      id: id,
+      ad: jsonString(json['ad']) ?? '',
     );
   }
 }
@@ -41,11 +47,13 @@ class CalisanBelgeKayit {
     };
   }
 
-  // JSON'dan oluşturma
-  factory CalisanBelgeKayit.fromJson(Map<String, dynamic> json) {
-    return CalisanBelgeKayit(
-      calisanId: json['calisanId'],
-      tarih: DateTime.parse(json['tarih']),
-    );
+  /// JSON'dan oluşturma. Çalışan kimliği ya da tarihi okunamayan kayıtlar
+  /// için null döner.
+  static CalisanBelgeKayit? tryFromJson(Object? json) {
+    if (json is! Map) return null;
+    final calisanId = jsonString(json['calisanId']);
+    final tarih = jsonTarih(json['tarih']);
+    if (calisanId == null || calisanId.isEmpty || tarih == null) return null;
+    return CalisanBelgeKayit(calisanId: calisanId, tarih: tarih);
   }
 }
