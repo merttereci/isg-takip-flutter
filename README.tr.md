@@ -31,15 +31,11 @@ Google Play üzerinden değil, doğrudan APK olarak dağıtıldı.
 - **Notlar.** Her şirket için serbest metin notu tutulabilir.
 - **İnternetsiz çalışır.** Bütün veri cihazda durur, hesap ya da internet bağlantısı gerekmez.
 
-<!--
 ## Ekran görüntüleri
-
-Görselleri docs/screenshots/ klasörüne ekleyip bu bölümün yorumunu kaldırın.
 
 | Şirket listesi | Şirket detayı | Çalışan kayıtları |
 |---|---|---|
 | ![Şirket listesi](docs/screenshots/company-list.png) | ![Şirket detayı](docs/screenshots/company-detail.png) | ![Çalışan kayıtları](docs/screenshots/employee-records.png) |
--->
 
 ## Kullanılan teknolojiler
 

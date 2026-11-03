@@ -22,15 +22,11 @@ It was distributed directly as an APK, not through Google Play.
 - **Notes.** A free-text note can be kept for each company.
 - **Works offline.** All data stays on the device. No account or internet connection is needed.
 
-<!--
 ## Screenshots
-
-Add the images under docs/screenshots/ and uncomment this section.
 
 | Company list | Company detail | Employee records |
 |---|---|---|
 | ![Company list](docs/screenshots/company-list.png) | ![Company detail](docs/screenshots/company-detail.png) | ![Employee records](docs/screenshots/employee-records.png) |
--->
 
 ## Tech stack
 
